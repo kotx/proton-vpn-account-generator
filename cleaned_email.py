@@ -17,18 +17,20 @@ from proxyscrape import create_collector
 import os
 
 
-from selenium.webdriver.chrome.options import Options 
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.select import Select
 
-print('ProtonVPN account creation started')
+print("ProtonVPN account creation started")
 
-warnings.filterwarnings("ignore", category=DeprecationWarning) 
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 options = Options()
 
-email_driver = webdriver.Chrome(executable_path='./chromedriver', chrome_options=options)
+email_driver = webdriver.Chrome(
+    executable_path="./chromedriver", chrome_options=options
+)
 
-email_url = 'https://www.guerrillamail.com/'
+email_url = "https://www.guerrillamail.com/"
 
 print("Loading temp-mail server:", email_url)
 
@@ -39,6 +41,7 @@ timeout = 60
 
 wait = WebDriverWait(email_driver, 60)
 
+
 def checkTimeout():
     global t, timeout
     if t > timeout:
@@ -47,10 +50,13 @@ def checkTimeout():
         exit(-1)
     t += 1
 
+
 while True:
     try:
-        email = email_driver.find_element_by_id('inbox-id').text + '@'
-        domain_name = Select(email_driver.find_element_by_id('gm-host-select')).first_selected_option.text
+        email = email_driver.find_element_by_id("inbox-id").text + "@"
+        domain_name = Select(
+            email_driver.find_element_by_id("gm-host-select")
+        ).first_selected_option.text
         email += domain_name
         print(email)
         break
@@ -62,27 +68,30 @@ while True:
 verifymail = email
 
 # Change Path to Chrome Driver Path (or move your ChromeDriver into the project folder)
-driver = webdriver.Chrome(executable_path='./chromedriver', chrome_options=options)
+driver = webdriver.Chrome(executable_path="./chromedriver", chrome_options=options)
 
 
-url = 'http://account.protonvpn.com/signup'
+url = "http://account.protonvpn.com/signup"
+
 
 def randomStringDigits(stringLength=13):
     # Generate a random string of letters and digits
     lettersAndDigits = string.ascii_letters + string.digits
-    return ''.join(random.choice(lettersAndDigits) for i in range(stringLength))
+    return "".join(random.choice(lettersAndDigits) for i in range(stringLength))
+
 
 def getUserName():
-    f = open('lastused.txt')
+    f = open("lastused.txt")
     val = int(f.readline().strip())
     f.close()
-    f = open('lastused.txt', 'w')
+    f = open("lastused.txt", "w")
     val += 1
     f.write(str(val))
-    return 'AbolitionMan'+str(val - 1)
+    return "AbolitionMan" + str(val - 1)
+
 
 rngusername = getUserName()
-rngpassword = 'infinity'
+rngpassword = "infinity"
 
 print("Loading protonvpn server:", url)
 
@@ -90,7 +99,9 @@ driver.get(url)
 
 while True:
     try:
-        driver.find_element_by_css_selector("body > div.app-root > main > main > div > div:nth-child(5) > div:nth-child(1) > div.flex-item-fluid-auto.pt1.pb1.flex.flex-column > button").click()
+        driver.find_element_by_css_selector(
+            "body > div > main > main > div > div:nth-child(5) > div:nth-child(1) > div.flex-item-fluid-auto.pt1.pb1.flex-noMinChildren.flex-column > button"
+        ).click()
         break
     except:
         checkTimeout()
@@ -98,18 +109,42 @@ while True:
 
 while True:
     try:
+        driver.switch_to.frame(
+            driver.find_element_by_xpath(
+                "/html/body/div/main/main/div/div[2]/div/div[1]/form/div[1]/div/div/iframe"
+            )
+        )
+
         driver.find_element_by_id("username").send_keys(rngusername)
-        driver.find_element_by_id("password").send_keys(rngpassword)
+        driver.switch_to.default_content()
+
+        driver.find_elements_by_id("password")[1].send_keys(rngpassword)
         driver.find_element_by_id("passwordConfirmation").send_keys(rngpassword)
+
+        driver.switch_to.frame(
+            driver.find_element_by_xpath(
+                "/html/body/div/main/main/div/div[2]/div/div[1]/form/div[3]/div/div/div/iframe"
+            )
+        )
         driver.find_element_by_id("email").send_keys(verifymail)
-        driver.find_element_by_css_selector("body > div.app-root > main > main > div > div.pt2.mb2 > div > div:nth-child(1) > form > div:nth-child(3) > div > button").click()
+        driver.switch_to.default_content()
+
+        driver.find_element_by_css_selector(
+            "body > div > main > main > div > div.pt2.mb2 > div > div:nth-child(1) > form > div:nth-child(5) > div > button"
+        ).click()
+
         break
-    except:
+    except Exception as e:
+        print(e)
         checkTimeout()
+        driver.switch_to.default_content()
         time.sleep(1)
 while True:
     try:
-        driver.find_element_by_css_selector("body > div.app-root > main > main > div > div.pt2.mb2 > div > div.w100 > div:nth-child(2) > div > div > div:nth-child(2) > form > div:nth-child(2) > button").click()
+        driver.switch_to.default_content()
+        driver.find_element_by_css_selector(
+            "body > div.app-root > main > main > div > div.pt2.mb2 > div > div.w100 > div:nth-child(2) > div > div > div:nth-child(2) > form > div:nth-child(2) > button"
+        ).click()
         break
     except:
         checkTimeout()
@@ -119,13 +154,15 @@ print("Wait for verification")
 
 while True:
     try:
-        val = email_driver.find_element_by_class_name('email-excerpt').text
+        val = email_driver.find_element_by_class_name("email-excerpt").text
         if not val[-6:].isnumeric():
             raise Exception
         print(val[-6:], "verification")
-        driver.find_element_by_id('code').send_keys(val[-6:])
+        driver.find_element_by_id("code").send_keys(val[-6:])
         time.sleep(1)
-        driver.find_element_by_css_selector('body > div.app-root > main > main > div > div.pt2.mb2 > div > div.w100 > div:nth-child(2) > form > div > div > div:nth-child(4) > button').click()
+        driver.find_element_by_css_selector(
+            "body > div.app-root > main > main > div > div.pt2.mb2 > div > div.w100 > div:nth-child(2) > form > div > div > div:nth-child(4) > button"
+        ).click()
         break
     except:
         checkTimeout()
@@ -133,8 +170,8 @@ while True:
 
 print("Account Created \uE405\nYour Details")
 
-f = open('list.csv', 'a')
-info = rngusername +', '+ rngpassword + '\n'
+f = open("list.csv", "a")
+info = rngusername + ", " + rngpassword + "\n"
 f.write(info)
 print("Username", rngusername, "Password", rngpassword)
 print("Info also added to list.csv")
